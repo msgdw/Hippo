@@ -1,16 +1,21 @@
 package me.pesekjak.hippo.classes.builder;
 
+import me.pesekjak.hippo.Hippo;
 import me.pesekjak.hippo.classes.*;
 import me.pesekjak.hippo.classes.content.Constructor;
 import me.pesekjak.hippo.classes.content.Field;
 import me.pesekjak.hippo.classes.converters.*;
 import me.pesekjak.hippo.classes.types.NonPrimitiveType;
 import me.pesekjak.hippo.skript.classes.SkriptClassBuilder;
+import me.pesekjak.hippo.utils.Logger;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -67,10 +72,24 @@ public class ClassBuilder implements IClassBuilder {
 
         if(!built)
             return;
-        DynamicClassLoader.CLASS_DATA.put(SKRIPT_CLASS.getType().dotPath(), CW.toByteArray());
+
+        String classPath = SKRIPT_CLASS.getType().dotPath();
+        byte[] bytes = CW.toByteArray();
+
+        Hippo hippo = Hippo.getInstance();
+        if (hippo.getConfig().getBoolean("output-class", false)) {
+            File file = new File(hippo.getDataFolder(), classPath + ".class");
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                fos.write(bytes);
+                Logger.info("class file save to: " + file.getAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        DynamicClassLoader.CLASS_DATA.put(classPath, bytes);
         DynamicClassLoader.reload();
         if(force && result != null)
-            result.set(DynamicClassLoader.getCurrentClassloader().forceDefine(SKRIPT_CLASS.getType().dotPath()));
+            result.set(DynamicClassLoader.getCurrentClassloader().forceDefine(classPath));
 
     }
 

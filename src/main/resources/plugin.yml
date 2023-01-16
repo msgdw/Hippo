@@ -5,3 +5,8 @@ version: 1.0
 api-version: 1.13
 authors: [Pesek]
 softdepend:  [Skript, skript-reflect]
+
+commands:
+  hippo:
+    usage: /<command> <reload>
+    permission: 'hippo.command'

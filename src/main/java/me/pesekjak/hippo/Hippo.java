@@ -6,9 +6,12 @@ import lombok.Getter;
 import me.pesekjak.hippo.utils.Logger;
 import me.pesekjak.hippo.utils.SkriptUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
+import java.util.List;
 
 public class Hippo extends JavaPlugin {
 
@@ -41,6 +44,7 @@ public class Hippo extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        saveDefaultConfig();
         if(!(Bukkit.getPluginManager().isPluginEnabled("Skript") &&
                 Bukkit.getPluginManager().isPluginEnabled("skript-reflect"))) {
             Logger.severe("Hippo requires Skript and skript-reflect installed to wake up!");
@@ -70,4 +74,18 @@ public class Hippo extends JavaPlugin {
         }
     }
 
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
+            reloadConfig();
+            sender.sendMessage("plugin reload finish.");
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return List.of("reload");
+    }
 }

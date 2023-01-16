@@ -1,6 +1,7 @@
 package me.pesekjak.hippo.classes.content;
 
 import ch.njol.skript.lang.Expression;
+import ch.njol.skript.variables.Variables;
 import lombok.Getter;
 import lombok.Setter;
 import me.pesekjak.hippo.classes.ISkriptClass;
@@ -70,10 +71,26 @@ public class Constructor extends Method {
                     false);
             ClassBuilder.cast(MV, new NonPrimitiveType(Constructor.class));
             ClassBuilder.pushValue(MV, argumentIndex);
+
+            // create arguments array
+            MV.visitIntInsn(Opcodes.BIPUSH, arguments.size());
+            MV.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
+            int xx = 0;
+            int xi = 1;
+            for (Type value : arguments.values()) {
+                MV.visitInsn(Opcodes.DUP);
+                MV.visitIntInsn(Opcodes.BIPUSH, xx++);
+                MV.visitVarInsn(value.loadCode(), xi);
+                if (!(value.loadCode() == Opcodes.ALOAD)) // Loaded as Primitive, needs to be converted.
+                    ClassBuilder.nonPrimitiveConverter(MV, value);
+                MV.visitInsn(Opcodes.AASTORE);
+                xi += value.size();
+            }
+
             MV.visitMethodInsn(
                     Opcodes.INVOKEVIRTUAL,
                     new NonPrimitiveType(Constructor.class).internalName(),
-                    "getSuperValue", "(I)Ljava/lang/Object;",
+                    "getSuperValue", "(I[Ljava/lang/Object;)Ljava/lang/Object;",
                     false);
 
             ClassBuilder.reflectConverter(MV);
@@ -191,9 +208,16 @@ public class Constructor extends Method {
         superArguments.addAll(Arrays.asList(arguments));
     }
 
-    public Object getSuperValue(int index) {
+    public Object getSuperValue(int index, Object[] args) {
         if(--index < 0) return null;
-        Object[] values = superValues.getAll(new MethodCallEvent(null, getIdentifier(), this));
+        MethodCallEvent event = new MethodCallEvent(null, getIdentifier(), this);
+        int i = 0;
+        for (String vname : arguments.keySet()) {
+            event.addArgument(args[i]);
+            Variables.setVariable(vname, args[i], event, true);
+            i++;
+        }
+        Object[] values = superValues.getAll(event);
         if(!(values.length > index))
             return null;
         return values[index];

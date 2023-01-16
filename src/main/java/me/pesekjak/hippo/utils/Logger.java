@@ -15,7 +15,8 @@ public class Logger {
     }
 
     private static String getFormattedString(String message) {
-        return ChatColor.translateAlternateColorCodes('&', PREFIX + message);
+        // return ChatColor.translateAlternateColorCodes('&', PREFIX + message);
+        return ChatColor.stripColor(message); // Logger unable to output style code
     }
 
     public static void info(String... messages) {

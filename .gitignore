@@ -1,0 +1,14 @@
+# VSCode
+.vscode/
+.settings/
+.project
+.classpath
+
+# Idea
+.idea
+*.iml
+
+# Maven
+target/
+libs/
+dependency-reduced-pom.xml
